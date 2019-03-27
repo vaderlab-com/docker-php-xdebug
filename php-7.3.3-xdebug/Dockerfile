@@ -22,10 +22,7 @@ RUN apt-get remove -y --purge autoconf build-essential \
     && apt-get clean
 
 
-RUN curl -fsSL 'https://getcomposer.org/installer' -o composer-setup.php \
-    && php composer-setup.php --filename=composer --install-dir=/bin \
-    && rm composer-setup.php
-
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 ARG XDEBUG_ENABLED=1
 ARG XDEBUG_REMOTE_PORT=9001
