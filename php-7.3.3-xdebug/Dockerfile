@@ -3,21 +3,24 @@ FROM php:7.3.3-fpm-stretch
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends curl autoconf build-essential git nano zlib1g-dev libzip-dev zip unzip
 
-RUN curl -fsSL 'https://xdebug.org/files/xdebug-2.7.0.tgz' -o xdebug.tar.gz \
-    && mkdir -p xdebug \
-    && tar -xf xdebug.tar.gz -C xdebug --strip-components=1 \
-    && rm xdebug.tar.gz \
+RUN curl -sS -o /tmp/icu.tar.gz -L http://download.icu-project.org/files/icu4c/63.1/icu4c-63_1-src.tgz \
+    && tar -zxf /tmp/icu.tar.gz -C /tmp && cd /tmp/icu/source \
+    && ./configure --prefix=/usr/local --enable-tests=no --enable-samples=no \
+    && make && make install
+
+RUN curl -fsSL 'https://xdebug.org/files/xdebug-2.7.0.tgz' -o /tmp/xdebug.tar.gz \
+    && mkdir -p /tmp/xdebug \
+    && tar -xf /tmp/xdebug.tar.gz -C /tmp/xdebug --strip-components=1 \
     && ( \
-    cd xdebug \
+    cd /tmp/xdebug \
     && phpize \
     && ./configure --enable-xdebug \
     && make -j$(nproc) \
     && make install \
     ) \
-    && rm -r xdebug \
     && docker-php-ext-enable xdebug
 
-RUN docker-php-ext-install zip
+RUN docker-php-ext-install zip intl
 
 RUN apt-get remove -y --purge autoconf build-essential \
     && apt-get autoremove -y \
