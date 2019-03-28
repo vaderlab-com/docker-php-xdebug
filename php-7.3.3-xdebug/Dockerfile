@@ -1,7 +1,7 @@
 FROM php:7.3.3-fpm-stretch
 
 RUN apt-get update
-RUN apt-get install -y curl autoconf build-essential nano
+RUN apt-get install -y --no-install-recommends curl autoconf build-essential git nano zlib1g-dev libzip-dev zip unzip
 
 RUN curl -fsSL 'https://xdebug.org/files/xdebug-2.7.0.tgz' -o xdebug.tar.gz \
     && mkdir -p xdebug \
@@ -17,12 +17,13 @@ RUN curl -fsSL 'https://xdebug.org/files/xdebug-2.7.0.tgz' -o xdebug.tar.gz \
     && rm -r xdebug \
     && docker-php-ext-enable xdebug
 
+RUN docker-php-ext-install zip
+
 RUN apt-get remove -y --purge autoconf build-essential \
     && apt-get autoremove -y \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 ARG XDEBUG_ENABLED=1
 ARG XDEBUG_REMOTE_PORT=9001
@@ -48,5 +49,6 @@ ENV XDEBUG_CONFIG="remote_enable=$PHP_XDEBUG_ENABLED \
     remote_autostart=$PHP_XDEBUG_REMOTE_AUTOSTART \
     remote_connect_back=Off"
 
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 WORKDIR "/app"
